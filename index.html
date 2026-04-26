@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVAI.CC - AI安全防御平台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #1a0a0a 0%, #2d0a0a 25%, #1f0a0a 50%, #250a0a 75%, #1a0a0a 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 50, 50, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 50, 50, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .shield {
+            position: fixed;
+            border: 6px solid rgba(255, 50, 50, 0.1);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+            animation: shieldPulse 4s ease-in-out infinite;
+        }
+        @keyframes shieldPulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.05); opacity: 0.5; }
+        }
+        .navbar {
+            background: rgba(26, 10, 10, 0.92);
+            backdrop-filter: blur(15px);
+            border-bottom: 2px solid rgba(255, 50, 50, 0.25);
+            padding: 1rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 3px 30px rgba(255, 50, 50, 0.15);
+        }
+        .nav-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.6rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff3232 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 50, 50, 0.4);
+            letter-spacing: 3px;
+        }
+        .nav-links a {
+            margin-left: 2rem;
+            text-decoration: none;
+            color: #e8e8e8;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff3232, #ff6b6b);
+            transition: width 0.3s;
+        }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-links a:hover { color: #ff6b6b; text-shadow: 0 0 10px rgba(255, 50, 50, 0.5); }
+        .hero {
+            padding: 9rem 5% 5rem;
+            text-align: center;
+            color: white;
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        .domain-name {
+            font-size: 5.8rem;
+            font-weight: bold;
+            margin-bottom: 1.6rem;
+            background: linear-gradient(135deg, #ff3232 0%, #ff6b6b 50%, #ff8e8e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 50, 50, 0.4);
+            animation: fadeInUp 1s ease, armorGlow 3s ease-in-out infinite;
+            letter-spacing: 4px;
+        }
+        @keyframes armorGlow {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(255, 50, 50, 0.35)); }
+            50% { filter: drop-shadow(0 0 35px rgba(255, 50, 50, 0.6)); }
+        }
+        .domain-tagline {
+            font-size: 1.65rem;
+            margin-bottom: 2.8rem;
+            opacity: 0.95;
+            color: #ffd8d8;
+            animation: fadeInUp 1.2s ease;
+            letter-spacing: 1.2px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 1.35rem 3.8rem;
+            background: linear-gradient(135deg, #ff3232 0%, #ff6b6b 100%);
+            color: #1a0a0a;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.22rem;
+            transition: all 0.3s;
+            box-shadow: 0 5px 25px rgba(255, 50, 50, 0.45), inset 0 0 15px rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 1.4s ease, buttonPulse 2s ease-in-out infinite;
+            border: 2px solid rgba(255, 50, 50, 0.35);
+        }
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 5px 25px rgba(255, 50, 50, 0.45), inset 0 0 15px rgba(255, 255, 255, 0.2); }
+            50% { box-shadow: 0 8px 35px rgba(255, 50, 50, 0.65), inset 0 0 25px rgba(255, 255, 255, 0.3); }
+        }
+        .cta-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 35px rgba(255, 50, 50, 0.65), inset 0 0 25px rgba(255, 255, 255, 0.3);
+        }
+        .section {
+            padding: 5rem 5%;
+            max-width: 1800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 3.3rem;
+            margin-bottom: 3.8rem;
+            background: linear-gradient(135deg, #ff3232 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 50, 50, 0.35);
+            letter-spacing: 2.2px;
+        }
+        .meanings-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2.6rem;
+            width: 100%;
+        }
+        .meaning-card {
+            background: rgba(26, 10, 10, 0.68);
+            backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(255, 50, 50, 0.22);
+            padding: 3rem;
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .meaning-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, #ff3232, #ff6b6b, #ff8e8e);
+            transform: scaleX(0);
+            transition: transform 0.4s;
+        }
+        .meaning-card:hover::before { transform: scaleX(1); }
+        .meaning-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            border-color: rgba(255, 50, 50, 0.6);
+            box-shadow: 0 15px 40px rgba(255, 50, 50, 0.25), inset 0 0 25px rgba(255, 50, 50, 0.08);
+        }
+        .meaning-icon { font-size: 4rem; margin-bottom: 1.3rem; filter: drop-shadow(0 0 15px rgba(255, 50, 50, 0.5)); }
+        .meaning-title {
+            font-size: 1.52rem;
+            font-weight: bold;
+            margin-bottom: 0.85rem;
+            background: linear-gradient(135deg, #ff3232 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .meaning-desc { color: #ffd8d8; line-height: 1.95; font-size: 1.06rem; opacity: 0.92; }
+        .scenarios {
+            background: rgba(255, 50, 50, 0.038);
+            backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(255, 50, 50, 0.15);
+            border-radius: 22px;
+            padding: 3.8rem;
+            margin: 2.3rem auto;
+            max-width: 1700px;
+            box-shadow: 0 10px 50px rgba(255, 50, 50, 0.095);
+        }
+        .scenario-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2.6rem;
+            width: 100%;
+        }
+        .scenario-item {
+            background: rgba(26, 10, 10, 0.68);
+            backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(255, 50, 50, 0.22);
+            padding: 2.6rem;
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .scenario-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, #ff3232, #ff6b6b, #ff8e8e);
+            transform: scaleX(0);
+            transition: transform 0.4s;
+        }
+        .scenario-item:hover::after { transform: scaleX(1); }
+        .scenario-item:hover {
+            transform: translateY(-9px) scale(1.03);
+            border-color: rgba(255, 50, 50, 0.6);
+            box-shadow: 0 13px 38px rgba(255, 50, 50, 0.25);
+        }
+        .scenario-icon { font-size: 3.3rem; margin-bottom: 1.3rem; filter: drop-shadow(0 0 13px rgba(255, 50, 50, 0.48)); }
+        .scenario-name {
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff3232 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.65rem;
+            font-size: 1.28rem;
+        }
+        .scenario-item p { color: #ffd8d8; opacity: 0.88; font-size: 0.97rem; }
+        .advantages {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2.6rem;
+            margin-top: 2.8rem;
+            width: 100%;
+        }
+        .advantage-item {
+            text-align: center;
+            background: rgba(26, 10, 10, 0.68);
+            backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(255, 50, 50, 0.22);
+            padding: 3rem;
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .advantage-item:hover {
+            transform: translateY(-12px) scale(1.02);
+            border-color: rgba(255, 50, 50, 0.6);
+            box-shadow: 0 15px 40px rgba(255, 50, 50, 0.25);
+        }
+        .advantage-number {
+            font-size: 4.1rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff3232 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.3rem;
+            filter: drop-shadow(0 0 20px rgba(255, 50, 50, 0.42));
+        }
+        .advantage-text {
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff3232 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.32rem;
+            margin-bottom: 0.65rem;
+        }
+        .advantage-item p { color: #ffd8d8; opacity: 0.88; font-size: 0.97rem; }
+        .contact {
+            background: rgba(26, 10, 10, 0.72);
+            backdrop-filter: blur(25px);
+            border: 1.5px solid rgba(255, 50, 50, 0.28);
+            padding: 5.2rem;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 15px 60px rgba(255, 50, 50, 0.16), inset 0 0 45px rgba(255, 50, 50, 0.055);
+            max-width: 1320px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .contact::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255, 50, 50, 0.085) 0%, transparent 62%);
+            animation: rotate 22s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .contact .section-title { position: relative; z-index: 1; }
+        .contact p { font-size: 1.28rem; color: #ffd8d8; opacity: 0.92; position: relative; z-index: 1; }
+        .contact-info {
+            margin: 2.8rem 0;
+            display: flex;
+            justify-content: space-around;
+            max-width: 920px;
+            margin: 2.8rem auto;
+            position: relative;
+            z-index: 1;
+        }
+        .contact-item {
+            font-size: 1.38rem;
+            color: #ffd8d8;
+            padding: 1.15rem 2.3rem;
+            background: rgba(26, 10, 10, 0.58);
+            border-radius: 13px;
+            border: 1px solid rgba(255, 50, 50, 0.18);
+        }
+        .contact-label {
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff3232 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .footer {
+            text-align: center;
+            padding: 3.3rem;
+            color: #ffd8d8;
+            opacity: 0.68;
+            position: relative;
+            z-index: 1;
+            border-top: 1px solid rgba(255, 50, 50, 0.12);
+            margin-top: 3.3rem;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(42px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 1200px) {
+            .meanings-grid, .scenario-list, .advantages { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .meanings-grid, .scenario-list, .advantages { grid-template-columns: 1fr; }
+            .domain-name { font-size: 3.6rem; letter-spacing: 2.5px; }
+            .domain-tagline { font-size: 1.25rem; }
+            .nav-links { display: none; }
+            .section-title { font-size: 2.3rem; }
+            .contact { padding: 3.3rem 2.3rem; }
+            .contact-info { flex-direction: column; gap: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="shield" style="width: 400px; height: 400px; top: -200px; right: -200px;"></div>
+    <div class="shield" style="width: 300px; height: 300px; bottom: -150px; left: -150px; animation-delay: 2s;"></div>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">SVAI.CC</div>
+            <div class="nav-links">
+                <a href="#meanings">含义解读</a>
+                <a href="#scenarios">应用场景</a>
+                <a href="#advantages">价值优势</a>
+                <a href="#contact">联系我们</a>
+            </div>
+        </div>
+    </nav>
+    <section class="hero">
+        <div class="domain-name">SVAI.CC</div>
+        <div class="domain-tagline">AI安全防御 · 隐私保护系统 · 威胁检测引擎 · 合规审计平台</div>
+        <a href="#contact" class="cta-button">立即咨询</a>
+    </section>
+    <section class="section" id="meanings">
+        <h2 class="section-title">SVAI 多重专业释义</h2>
+        <div class="meanings-grid">
+            <div class="meaning-card">
+                <div class="meaning-icon">🛡️</div>
+                <div class="meaning-title">Security AI</div>
+                <div class="meaning-desc">AI安全防御系统，为人工智能应用提供全方位安全防护与威胁检测</div>
+            </div>
+            <div class="meaning-card">
+                <div class="meaning-icon">🔒</div>
+                <div class="meaning-title">Safe AI</div>
+                <div class="meaning-desc">安全AI平台，确保AI模型训练与推理过程的可控性与可靠性</div>
+            </div>
+            <div class="meaning-card">
+                <div class="meaning-icon">🔍</div>
+                <div class="meaning-title">Scan & Verify AI</div>
+                <div class="meaning-desc">AI扫描验证系统，检测模型漏洞、数据泄露与合规风险</div>
+            </div>
+            <div class="meaning-card">
+                <div class="meaning-icon">⚖️</div>
+                <div class="meaning-title">Sovereign AI</div>
+                <div class="meaning-desc">主权AI平台，保障数据本地化存储与AI算力自主可控</div>
+            </div>
+        </div>
+    </section>
+    <section class="section" id="scenarios">
+        <h2 class="section-title">核心应用场景</h2>
+        <div class="scenarios">
+            <div class="scenario-list">
+                <div class="scenario-item">
+                    <div class="scenario-icon">🔐</div>
+                    <div class="scenario-name">模型安全</div>
+                    <p>对抗攻击防御、模型窃取防护</p>
+                </div>
+                <div class="scenario-item">
+                    <div class="scenario-icon">📊</div>
+                    <div class="scenario-name">数据安全</div>
+                    <p>隐私保护、数据脱敏、访问控制</p>
+                </div>
+                <div class="scenario-item">
+                    <div class="scenario-icon">🏢</div>
+                    <div class="scenario-name">合规审计</div>
+                    <p>AI伦理审查、法规合规检测</p>
+                </div>
+                <div class="scenario-item">
+                    <div class="scenario-icon">🚨</div>
+                    <div class="scenario-name">威胁检测</div>
+                    <p>异常行为识别、入侵检测预警</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="section" id="advantages">
+        <h2 class="section-title">域名核心价值</h2>
+        <div class="advantages">
+            <div class="advantage-item">
+                <div class="advantage-number">4</div>
+                <div class="advantage-text">字符长度</div>
+                <p>极简易记，品牌传播零成本</p>
+            </div>
+            <div class="advantage-item">
+                <div class="advantage-number">4</div>
+                <div class="advantage-text">专业释义</div>
+                <p>覆盖安全/防护/扫描/主权四大场景</p>
+            </div>
+            <div class="advantage-item">
+                <div class="advantage-number">千亿级</div>
+                <div class="advantage-text">市场规模</div>
+                <p>AI安全是产业刚需核心赛道</p>
+            </div>
+            <div class="advantage-item">
+                <div class="advantage-number">.CC</div>
+                <div class="advantage-text">国际后缀</div>
+                <p>简洁易记，国际化认可度高</p>
+            </div>
+        </div>
+    </section>
+    <section class="section" id="contact">
+        <div class="contact">
+            <h2 class="section-title">联系我们</h2>
+            <p>如果您对这个优质AI安全域名感兴趣，欢迎随时联系</p>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <span class="contact-label">邮箱：</span>
+                    <span>ai@altoai.cn</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-label">微信：</span>
+                    <span>altoai</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-label">QQ：</span>
+                    <span>31391890</span>
+                </div>
+            </div>
+            <a href="mailto:ai@altoai.cn" class="cta-button">发送邮件咨询</a>
+        </div>
+    </section>
+    <footer class="footer">
+        <p>© 2026 <a target="_blank" href="http://altoai.cn/blog" style="text-decoration: none">
+<font color="#ffd8d8">ALTOAI.CN</font></a> 版权所有 | AI安全防御平台域名</p>
+        <p style="margin-top: 1.15rem; font-size: 0.91rem;">本页面仅用于域名展示，不构成任何商业承诺</p>
+    </footer>
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(26, 10, 10, 0.96)';
+                navbar.style.borderBottom = '2px solid rgba(255, 50, 50, 0.35)';
+                navbar.style.boxShadow = '0 3px 40px rgba(255, 50, 50, 0.2)';
+            } else {
+                navbar.style.background = 'rgba(26, 10, 10, 0.92)';
+                navbar.style.borderBottom = '2px solid rgba(255, 50, 50, 0.25)';
+                navbar.style.boxShadow = '0 3px 30px rgba(255, 50, 50, 0.15)';
+            }
+        });
+    </script>
+</body></body><body oncontextmenu="return false" onselectstart="return false" ondragstart="return false" onbeforecopy="return false" oncopy=document.selection.empty() onselect=document.selection.empty()>
+
+</html>
